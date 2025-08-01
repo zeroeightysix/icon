@@ -131,7 +131,7 @@ impl IconSearch<Initial> {
         let mut extra_dirs = directories.into_iter().map(Into::into).collect();
         self.dirs.append(&mut extra_dirs);
 
-        extra_dirs.into()
+        self
     }
 
     // -- STAGE 2: In search dirs, find standalone icons and directories that may be icon themes
@@ -564,5 +564,4 @@ mod test {
         let icon = locations.standalone_icon("htop").unwrap();
         assert_eq!(icon.path.file_name(), Some("htop.png".as_ref()))
     }
-    
 }
