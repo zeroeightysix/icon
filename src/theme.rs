@@ -92,8 +92,14 @@ impl Default for Icons {
     }
 }
 
+/// An icon theme.
 pub struct Theme {
+    /// Properties of this theme and all of its subdirectories.
     pub info: ThemeInfo,
+    /// References to the `Theme`s that this theme depends on.
+    ///
+    /// When querying for an icon that doesn't exist in this theme, the themes in its `inherits_from`
+    /// list will be checked for that icon instead.
     pub inherits_from: Vec<Arc<Theme>>,
 }
 
@@ -171,10 +177,26 @@ impl Theme {
     }
 }
 
+/// Information about an icon theme.
+///
+/// Its formal description (called the index) can be found in the `index` field.
 pub struct ThemeInfo {
+    /// The name of the directory wherein this theme lives.
+    ///
+    /// This is different from the theme's actual name, which is specified in its index. (See `index.name`)
     pub internal_name: String,
+    /// The directories in which this theme's icons live.
+    ///
+    /// The Icon Theme specification allows a theme to be split up over multiple directories
+    /// (of the same internal name) in each of the base directories applications look for themes.
+    /// This list holds the paths to all directories where this theme is specified.
     pub base_dirs: Vec<PathBuf>,
+    /// Although icon themes may be split up over multiple directories, each icon theme is only
+    /// allowed one `index.theme` file to dictate the theme's properties. Applications must use the
+    /// first `index.theme` file they find when searching base directories; this field holds the
+    /// path to that file.
     pub index_location: PathBuf,
+    /// The contents of the `index.theme` file.
     pub index: ThemeIndex,
     // additional groups?
 }
@@ -216,12 +238,34 @@ impl ThemeInfo {
     }
 }
 
+/// The "formal description" of a theme as specified by the Icon Theme specification.
+///
+/// Every icon theme must 'describe' itself using an index file. It contains useful information such
+/// as a human-readable name for the theme, which themes it depends on (i.e. fallbacks),
+/// and a complete listing of all directories associated with the icon theme along with their
+/// properties.
+///
+/// All doc comments in *italics* below are copy-pasted from the XDG Icon Theme Specification.
 pub struct ThemeIndex {
+    /// *Short name of the icon theme, used in e.g. lists when selecting themes.*
     pub name: String,
+    /// *Longer string describing the theme*
     pub comment: String,
+    /// *The name of the theme that this theme inherits from. If an icon name is not found in the current theme, it is searched for in the inherited theme (and recursively in all the inherited themes).*
+    ///
+    /// *If no theme is specified, implementations are required to add the "hicolor" theme to the inheritance tree. An implementation may optionally add other default themes in between the last specified theme and the hicolor theme.*
+    ///
+    /// *Themes that are inherited from explicitly must be present on the system.*
     pub inherits: Vec<String>,
+    /// Directories associated with this icon theme. This compounds the "Directories" **and**
+    /// "ScaledDirectories" entries of the index.
+    ///
+    /// "Directories": *List of subdirectories for this theme. For every subdirectory there must be a section in the `index.theme` file describing that directory.* \
+    /// "ScaledDirectories": *Additional list of subdirectories for this theme, in addition to the ones in Directories. These directories should only be read by implementations supporting scaled directories and was added to keep compatibility with old implementations that don't support these.*
     pub directories: Vec<DirectoryIndex>,
+    /// *Whether to hide the theme in a theme selection user interface. This is used for things such as fallback-themes that are not supposed to be visible to the user.*
     pub hidden: bool,
+    /// *The name of an icon that should be used as an example of how this theme looks.*
     pub example: Option<String>,
 }
 
@@ -298,15 +342,32 @@ impl ThemeIndex {
     }
 }
 
+/// The "formal description" of a subdirectory in an Icon Theme, as specified by the Icon Theme
+/// specification.
+///
+/// All doc comments in *italics* below are copy-pasted from the XDG Icon Theme Specification.
 pub struct DirectoryIndex {
+    /// The name of the subdirectory as found in the theme's index file.
+    ///
+    /// It is not guaranteed that a subdirectory with the same name actually exists.
     pub directory_name: String,
+    /// Is this directory listed as a "normal" subdirectory (holding specific sizes of icons) or a "scaled" directory (holding scalable graphics)?
     pub is_scaled_dir: bool,
+    /// *Nominal (unscaled) size of the icons in this directory.*
+    ///
+    /// This is the only required field; all others assume their default value if not present.
     pub size: u32,
+    /// *Target scale of the icons in this directory. Defaults to the value 1 if not present. Any directory with a scale other than 1 should be listed in the ScaledDirectories list rather than Directories for backwards compatibility.*
     pub scale: u32,
+    /// *The context the icon is normally used in. This is in detail discussed in [Section 4.1, “Context”](https://specifications.freedesktop.org/icon-theme/latest/#context).*
     pub context: Option<String>,
+    /// *The type of icon sizes for the icons in this directory. Valid types are `Fixed`, `Scalable` and `Threshold`. The type decides what other keys in the section are used. If not specified, the default is `Threshold`.*
     pub directory_type: DirectoryType,
+    /// *Specifies the maximum (unscaled) size that the icons in this directory can be scaled to. Defaults to the value of `size` if not present.*
     pub max_size: u32,
+    /// *Specifies the minimum (unscaled) size that the icons in this directory can be scaled to. Defaults to the value of `size` if not present.*
     pub min_size: u32,
+    /// *The icons in this directory can be used if the size differ at most this much from the desired (unscaled) size. Defaults to *2* if not present.*
     pub threshold: u32,
     // pub additional_values: HashMap<String, String>,
 }

@@ -237,9 +237,17 @@ impl IconSearch<Finished> {
     }
 }
 
+/// Locations icons may be found at.
+///
+/// This consists of two parts:
+/// - A list of standalone icons. These are "loose" icons found in the searched base directories. They do not belong to any theme.
+/// - A map of icon theme identifiers ("internal name"s) to all directories where that icon theme's icons live.
+///   This is a list because icon themes may be split up over multiple base directories.
 #[derive(Debug)]
 pub struct IconLocations {
+    /// List of icons not belonging to any theme.
     pub standalone_icons: Vec<IconFile>,
+    /// Map of icon theme identifiers to the directories where the icons live.
     pub themes_directories: HashMap<OsString, Vec<PathBuf>>,
 }
 
