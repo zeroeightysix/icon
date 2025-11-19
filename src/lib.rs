@@ -57,9 +57,8 @@
 
 mod icon;
 mod search;
-pub mod theme;
+mod theme;
 
 pub use icon::*;
 pub use search::*;
-#[doc(inline)]
 pub use theme::*;
