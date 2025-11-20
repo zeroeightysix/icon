@@ -96,20 +96,48 @@ impl Default for Icons {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct IconFile {
     /// Absolute path to where this icon is found on disk.
-    pub path: PathBuf,
+    path: PathBuf,
     /// The filetype of the icon, derived from its extension. May be `Png`, `Xpm` or `Svg`.
-    pub file_type: FileType,
+    file_type: FileType,
 }
 
 impl IconFile {
+    /// Derive the icon name from its path.
+    pub fn icon_name(&self) -> &str {
+        self.path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .expect("protected by type's constructor")
+    }
+
     /// Create an `IconFile` from a filesystem path, deriving its filetype from its extension.
     pub fn from_path(path: &Path) -> Option<IconFile> {
-        let file_type = FileType::from_path_ext(path)?;
+        Self::from_path_buf(path.to_owned())
+    }
+
+    /// Create an `IconFile` from an owned filesystem path, deriving its filetype from its extension.
+    ///
+    /// Returns `None` if the provided path does not have a name or extension valid for icons.
+    pub fn from_path_buf(path_buf: PathBuf) -> Option<IconFile> {
+        // An icon file must have a file stem.
+        path_buf.file_stem()?;
+
+        let file_type = FileType::from_path_ext(&path_buf)?;
 
         Some(IconFile {
-            path: path.to_owned(),
+            path: path_buf,
             file_type,
         })
+    }
+
+    /// Returns the path associated with this icon
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    /// Returns this icon's file type
+    pub fn file_type(&self) -> FileType {
+        self.file_type
     }
 }
 

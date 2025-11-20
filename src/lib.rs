@@ -13,7 +13,7 @@
 //! // Find an icon named "firefox" with size 128x128 in theme "Adwaita"
 //! let firefox: Option<icon::IconFile> = icons.find_icon("firefox", 128, 1, "Adwaita");
 //!
-//! println!("Firefox icon is at {:?}", firefox.unwrap().path)
+//! println!("Firefox icon is at {:?}", firefox.unwrap().path())
 //! ```
 //!
 //! See [Icons].

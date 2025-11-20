@@ -481,7 +481,7 @@ fn find_attr_req<'a>(
 #[cfg(test)]
 mod test {
     use crate::Icons;
-    use crate::icon::{FileType, IconFile};
+    use crate::icon::FileType;
     use crate::{DirectoryType, ThemeIndex};
     use std::error::Error;
     use std::path::Path;
@@ -491,15 +491,13 @@ mod test {
     fn test_find_firefox() {
         let icons = Icons::new();
 
-        let ico = icons.find_default_icon("firefox", 128, 1);
+        let ico = icons.find_default_icon("firefox", 128, 1).unwrap();
 
         assert_eq!(
-            ico,
-            Some(IconFile {
-                path: "/usr/share/icons/hicolor/128x128/apps/firefox.png".into(),
-                file_type: FileType::Png
-            })
+            ico.path(),
+            Path::new("/usr/share/icons/hicolor/128x128/apps/firefox.png")
         );
+        assert_eq!(ico.file_type(), FileType::Png);
 
         // we should be able to find an icon for a bunch of different sizes
         for size in (16u32..=64).step_by(8) {
