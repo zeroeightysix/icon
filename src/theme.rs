@@ -144,7 +144,7 @@ pub enum ThemeParseError {
     /// Couldn't parse a `bool`ean where one was expected.
     #[error("a number was expected but failed to parse")]
     ParseNumError(#[from] std::num::ParseIntError),
-    /// Couldn't parse a [DirectoryType](crate::DirectoryType) where one was expected.
+    /// Couldn't parse a [DirectoryType](DirectoryType) where one was expected.
     #[error("A directory type was invalid")]
     InvalidDirectoryType,
     /// The file was not properly formatted as a freedesktop entry file.
