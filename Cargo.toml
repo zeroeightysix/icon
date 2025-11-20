@@ -21,9 +21,11 @@ freedesktop_entry_parser = { version = "2.0.1", default-features = false }
 thiserror = "2.0.17"
 xdg = "3.0.0"
 log = { version = "0.4.28", optional = true }
+walkdir = { version = "2.5.0", default-features = false, optional = true }
 
 [features]
 "log" = ["dep:log"]
+"full-search" = ["dep:walkdir"]
 
 [dev-dependencies]
 freedesktop-desktop-entry = "0.7.13"

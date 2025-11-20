@@ -180,6 +180,8 @@ impl IconSearch<Initial> {
         IconLocations {
             standalone_icons: files,
             themes_directories,
+            #[cfg(feature = "full-search")]
+            full_icon_map: None,
         }
     }
 
@@ -255,6 +257,8 @@ pub struct IconLocations {
     pub standalone_icons: Vec<IconFile>,
     /// Map of icon theme identifiers to the directories where the icons live.
     pub themes_directories: HashMap<OsString, Vec<PathBuf>>,
+    #[cfg(feature = "full-search")]
+    full_icon_map: Option<HashMap<String, Vec<IconFile>>>,
 }
 
 impl IconLocations {
@@ -273,6 +277,43 @@ impl IconLocations {
         dirs.find_icon_locations()
     }
 
+    /// Search for all icons in all themes and store the result.
+    #[cfg(feature = "full-search")]
+    pub fn full_icon_search(&mut self) -> &HashMap<String, Vec<IconFile>> {
+        // First, initialize the "full icon map" with the standalone icons and their paths:
+        let mut full_icon_map: HashMap<_, _> = self
+            .standalone_icons
+            .iter()
+            .map(|ico| (ico.icon_name().to_owned(), vec![ico.clone()]))
+            .collect();
+
+        // Now, for each theme directory, add every file in it with a supported file extension
+        // to the map:
+        for path in self.themes_directories.values().flatten() {
+            for entry in walkdir::WalkDir::new(path).follow_links(true).into_iter().flatten() {
+                // Directories are not icons.
+                if entry.file_type().is_dir() {
+                    continue;
+                }
+
+                let path = entry.into_path();
+                let Some(icon) = IconFile::from_path_buf(path) else {
+                    // This file was not a valid icon.
+                    continue;
+                };
+
+                let icons = full_icon_map
+                    .entry(icon.icon_name().to_owned())
+                    .or_insert_with(Default::default);
+
+                icons.push(icon);
+            }
+        }
+
+        self.full_icon_map = Some(full_icon_map);
+        self.full_icon_map.as_ref().unwrap()
+    }
+
     /// Collects all standalone icons, themes, and all the dependencies of the themes found.
     ///
     /// Wraps everything up into the central [Icons] struct, which may then be used to perform actual
@@ -285,7 +326,7 @@ impl IconLocations {
             .into_iter()
             .map(|file| {
                 let key = file
-                    .path
+                    .path()
                     .file_stem()
                     .map(|s| s.to_string_lossy().to_string())
                     .unwrap_or(String::new());
@@ -537,7 +578,7 @@ impl IconLocations {
 
         self.standalone_icons
             .iter()
-            .find(|icon| icon.path.file_stem() == Some(name))
+            .find(|icon| icon.path().file_stem() == Some(name))
     }
 }
 
@@ -583,41 +624,116 @@ impl Default for IconSearch {
 #[cfg(test)]
 mod test {
     use crate::search::IconSearch;
+    use std::collections::HashSet;
+    use std::path::PathBuf;
+
+    static PROJ_ROOT: &'static str = env!("CARGO_MANIFEST_DIR");
+
+    fn test_search() -> IconSearch {
+        IconSearch::new_empty().add_directories([
+            PathBuf::from(PROJ_ROOT).join("resources/test_icons"),
+            PathBuf::from(PROJ_ROOT).join("resources/test_icons_alt"),
+        ])
+    }
 
     // these tests assume certain applications are installed on the system they are run on.
 
     #[test]
     fn test_standard_usage() {
-        let _icons = IconSearch::new()
+        let icons = test_search()
             .add_directories(["/this/path/probably/doesnt/exist/but/who/cares/"])
             .search();
 
         assert!(
-            _icons
+            icons
                 .dirs
                 .contains(&"/this/path/probably/doesnt/exist/but/who/cares/".into()),
             "IconSearch contains the added directory"
         );
 
-        let _ = _icons.icons();
+        // Two themes in the testing directories: TestTheme and OtherTheme
+        assert_eq!(
+            icons.icon_locations().themes_directories.len(),
+            2
+        );
+
+        let _ = icons.icons();
 
         // no panic
     }
 
     #[test]
-    fn test_find_standard_theme() {
-        const THEMES_MAY_EXIST: [&'static str; 4] = ["Adwaita", "breeze", "Cosmic", "Pop"];
-
-        let dirs = IconSearch::new();
+    fn test_find_test_theme() {
+        let dirs = test_search();
         let locations = dirs.find_icon_locations();
 
-        let find_std_theme = THEMES_MAY_EXIST
-            .iter()
-            .any(|theme| locations.load_single_theme(theme).is_ok());
-        assert!(
-            find_std_theme,
-            "Adwaita, breeze, Cosmic, or Pop could not be found on the system.\n\
-            If you don't have any of those themes installed, ignore this test!"
+        let theme = locations.load_single_theme("TestTheme").unwrap();
+
+        assert_eq!(theme.internal_name, "TestTheme", "name is correct");
+        assert_eq!(
+            theme.index.comment,
+            "This is a theme to test icon's capabilities."
+        );
+        assert_eq!(theme.index.hidden, true);
+        assert_eq!(
+            theme.base_dirs.len(),
+            2,
+            "correct amount of base directories"
+        );
+        assert_eq!(theme.index_location.file_name().unwrap(), "index.theme");
+        assert_eq!(theme.index.name, "HelloTestTheme!");
+        assert_eq!(
+            theme.index.comment,
+            "This is a theme to test icon's capabilities."
+        );
+        assert_eq!(theme.index.inherits, vec![String::from("OtherTheme")]);
+
+        let directories = theme.index.directories.iter();
+
+        assert_eq!(
+            directories
+                .clone()
+                .map(|di| di.directory_name.as_str())
+                .collect::<HashSet<_>>(),
+            [
+                "16x16/α",
+                "16x16/β",
+                "32x32/foo",
+                "UnconventionalDirectoryName/γ",
+                "128x128"
+            ]
+            .into()
+        );
+
+        assert_eq!(
+            directories
+                .clone()
+                .map(|di| di.size)
+                .collect::<HashSet<_>>(),
+            [16, 32, 64, 128].into()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "full-search")]
+    fn test_full_icon_search() {
+        let mut icon_locations = test_search().find_icon_locations();
+        let map = icon_locations.full_icon_search();
+
+        // "beautiful sunset" has 3 icons:
+        assert_eq!(map["beautiful sunset"].len(), 3);
+        // "happy" has 2:
+        assert_eq!(map["happy"].len(), 2);
+        // and "pixel" appears once:
+        assert_eq!(map["pixel"].len(), 1);
+
+        // "beautiful sunset" has one .xpm file:
+        assert_eq!(
+            map["beautiful sunset"]
+                .iter()
+                .filter(|ico| ico.file_type() == crate::FileType::Xpm)
+                .count(),
+            1
         );
     }
 }
