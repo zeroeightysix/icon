@@ -103,6 +103,7 @@ impl Theme {
 /// Information about an icon theme.
 ///
 /// Its formal description (called the index) can be found in the `index` field.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThemeInfo {
     /// The name of the directory wherein this theme lives.
     ///
@@ -186,6 +187,7 @@ impl ThemeInfo {
 /// properties.
 ///
 /// All doc comments in *italics* below are copy-pasted from the XDG Icon Theme Specification.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThemeIndex {
     /// *Short name of the icon theme, used in e.g. lists when selecting themes.*
     pub name: String,
@@ -294,6 +296,7 @@ impl ThemeIndex {
 /// specification.
 ///
 /// All doc comments in *italics* below are copy-pasted from the XDG Icon Theme Specification.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DirectoryIndex {
     /// The name of the subdirectory as found in the theme's index file.
     ///
