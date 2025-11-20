@@ -42,61 +42,78 @@ impl Theme {
     ///
     /// Do not use this function if you need normal icon finding behaviour: use [find_icon](Theme::find_icon) instead.
     pub fn find_icon_here(&self, icon_name: &str, size: u32, scale: u32) -> Option<IconFile> {
-        const EXTENSIONS: [&str; 3] = ["png", "xpm", "svg"];
-        let file_names = EXTENSIONS.map(|ext| format!("{icon_name}.{ext}"));
-
-        let base_dirs = &self.info.base_dirs;
-
         let sub_dirs = &self.info.index.directories;
+
         // first, try to find an exact icon size match:
         let exact_sub_dirs = sub_dirs
             .iter()
             .filter(|sub_dir| sub_dir.matches_size(size, scale));
 
-        for base_dir in base_dirs {
-            for sub_dir in exact_sub_dirs.clone() {
-                for file_name in &file_names {
+        // First, try finding an exact size match.
+        if let Some(exact_match_icon) = exact_sub_dirs
+            .flat_map(|exact_sub_dir| self.find_icon_exact_in_directory(icon_name, exact_sub_dir))
+            .next()
+        {
+            // and return it if found!
+            return Some(exact_match_icon);
+        }
+
+        // no exact match: try to find a match as close as possible instead.
+
+        // in order to reduce file exist syscalls,
+        // we opt to do the hopefully _less expensive_ operation of sorting the subdirectories instead,
+        // from the smallest size_distance to largest.
+        // that gives us the assurance that the first icon found, is the best one.
+        let mut sub_dirs = sub_dirs.iter().collect::<Vec<_>>();
+        sub_dirs.sort_by_key(|sub_dir| sub_dir.size_distance(size, scale));
+        
+        for sub_dir in sub_dirs {
+            for base_dir in &self.info.base_dirs {
+                for file_name in &Self::possible_file_names_for(icon_name) {
                     let path = base_dir
                         .join(sub_dir.directory_name.as_str())
                         .join(file_name);
-
                     if path.exists()
                         && let Some(file) = IconFile::from_path(&path)
                     {
-                        // exact match!
                         return Some(file);
                     }
                 }
             }
         }
 
-        drop(exact_sub_dirs);
+        None
+    }
 
-        // no exact match: try to find a match as close as possible instead.
-        let mut min_dist = u32::MAX;
-        let mut best_icon = None;
+    fn possible_file_names_for(icon_name: &str) -> [String; 3] {
+        const EXTENSIONS: [&str; 3] = ["png", "xpm", "svg"];
 
-        for base_dir in base_dirs {
-            for sub_dir in sub_dirs {
-                let distance = sub_dir.size_distance(size, scale);
+        EXTENSIONS.map(|ext| format!("{icon_name}.{ext}"))
+    }
 
-                if distance < min_dist {
-                    for file_name in &file_names {
-                        let path = base_dir
-                            .join(sub_dir.directory_name.as_str())
-                            .join(file_name);
-                        if path.exists()
-                            && let Some(file) = IconFile::from_path(&path)
-                        {
-                            min_dist = distance;
-                            best_icon = Some(file);
-                        }
-                    }
+    fn find_icon_exact_in_directory(
+        &self,
+        icon_name: &str,
+        directory: &DirectoryIndex,
+    ) -> Option<IconFile> {
+        let file_names = Self::possible_file_names_for(icon_name);
+
+        for base_dir in &self.info.base_dirs {
+            for file_name in &file_names {
+                let path = base_dir
+                    .join(directory.directory_name.as_str())
+                    .join(file_name);
+
+                let path_exists = path.exists();
+
+                if path_exists && let Some(file) = IconFile::from_path(&path) {
+                    // exact match!
+                    return Some(file);
                 }
             }
         }
 
-        best_icon
+        None
     }
 }
 
