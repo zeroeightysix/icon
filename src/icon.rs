@@ -293,8 +293,8 @@ impl Display for FileType {
 
 #[cfg(test)]
 mod test {
-    use crate::search::test::test_search;
     use crate::IconFile;
+    use crate::search::test::test_search;
     use std::collections::HashMap;
 
     #[test]

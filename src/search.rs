@@ -544,7 +544,7 @@ impl IconLocations {
             .get(internal_name)
             .ok_or_else(|| std::io::Error::other(ThemeParseError::NotAnIconTheme))?;
 
-        ThemeInfo::new_from_folders(internal_name.to_string_lossy().into_owned(), theme.clone())
+        ThemeInfo::new_from_folders(internal_name.to_owned(), theme.clone())
     }
 
     /// Look up a standalone icon by name.

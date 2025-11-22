@@ -1,6 +1,7 @@
 use crate::ThemeParseError::MissingRequiredAttribute;
 use crate::icon::IconFile;
 use freedesktop_entry_parser::low_level::{SectionBytes, SectionBytesIter};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -152,7 +153,7 @@ pub struct ThemeInfo {
     /// The name of the directory wherein this theme lives.
     ///
     /// This is different from the theme's actual name, which is specified in its index. (See `index.name`)
-    pub internal_name: String,
+    pub internal_name: OsString,
     /// The directories in which this theme's icons live.
     ///
     /// The Icon Theme specification allows a theme to be split up over multiple directories
@@ -205,7 +206,10 @@ impl ThemeInfo {
     /// lives.
     ///
     /// This function will parse the first `index.theme` file found in the directories passed in.
-    pub fn new_from_folders(internal_name: String, folders: Vec<PathBuf>) -> std::io::Result<Self> {
+    pub fn new_from_folders(
+        internal_name: OsString,
+        folders: Vec<PathBuf>,
+    ) -> std::io::Result<Self> {
         let index_location = folders
             .iter()
             .map(|f| f.join("index.theme"))
