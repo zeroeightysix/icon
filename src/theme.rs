@@ -60,7 +60,7 @@ impl Theme {
         // we opt to do the hopefully _less expensive_ operation of sorting the subdirectories instead,
         // from the smallest size_distance to largest.
         // that gives us the assurance that the first icon found, is the best one.
-        let mut sub_dirs = (&self.info.index.directories).iter().collect::<Vec<_>>();
+        let mut sub_dirs = self.info.index.directories.iter().collect::<Vec<_>>();
         sub_dirs.sort_by_key(|sub_dir| sub_dir.size_distance(size, scale));
 
         for sub_dir in sub_dirs {
@@ -417,10 +417,8 @@ impl DirectoryIndex {
 
                 if size < lower {
                     lower - size
-                } else if size > higher {
-                    size - higher
                 } else {
-                    0
+                    size.saturating_sub(higher)
                 }
             }
             DirectoryType::Threshold => {

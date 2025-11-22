@@ -81,11 +81,11 @@
 //!   - it only supports a rust-native icon cache, which you cannot opt out of.
 //!   - it provides only icon loading—you cannot use it to obtain information about Icon Themes.
 
+#[cfg(feature = "cache")]
+mod cache;
 mod icon;
 mod search;
 mod theme;
-#[cfg(feature = "cache")]
-mod cache;
 
 pub use icon::*;
 pub use search::*;
