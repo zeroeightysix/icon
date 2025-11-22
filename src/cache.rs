@@ -6,6 +6,16 @@ use std::ffi::{OsStr, OsString};
 use std::sync::Arc;
 
 /// Cached version of [`Icons`].
+///
+/// # Example
+///
+/// ```
+/// use icon::{Icons, IconsCache};
+///
+/// let mut cache: IconsCache = Icons::new().into();
+/// cache.find_icon("firefox", 128, 1, "Adwaita");
+/// // Subsequent queries for "firefox" will utilize the cache.
+/// ```
 pub struct IconsCache {
     /// The [`Icons`] this cache was created from.
     icons: Icons,
@@ -32,8 +42,8 @@ impl IconsCache {
 
     /// Look up an icon by name, size, scale and theme.
     ///
-    /// Cache version of [Icons::find_icon]. For more details on how icon matching works,
-    /// check out the documentation of [Icons::find_icon].
+    /// Cache version of [`Icons::find_icon`]. For more details on how icon matching works,
+    /// check out the documentation of [`Icons::find_icon`].
     pub fn find_icon(
         &mut self,
         icon_name: &str,
@@ -57,7 +67,7 @@ impl IconsCache {
 
     /// Access a known icon theme cache by name.
     ///
-    /// Analogous to [Icons::theme].
+    /// Analogous to [`Icons::theme`].
     pub fn theme_cache(&self, theme_name: &str) -> Option<&ThemeCache> {
         let theme_name: &OsStr = theme_name.as_ref();
         self.themes.get(theme_name)
@@ -71,7 +81,7 @@ impl IconsCache {
 
     /// Look up a standalone icon by name.
     ///
-    /// Cache version of [Icons::find_standalone_icon].
+    /// Cache version of [`Icons::find_standalone_icon`].
     pub fn find_standalone_icon(&self, icon_name: &str) -> Option<IconFile> {
         self.icons.find_standalone_icon(icon_name)
     }
@@ -125,7 +135,7 @@ impl ThemeCache {
 
     /// Find an icon in this theme only, utilizing and populating the internal cache where possible.
     ///
-    /// This function is analogous to [Theme::find_icon_here].
+    /// This function is analogous to [`Theme::find_icon_here`].
     // for people editing this function: make sure to check, and keep in sync, the behaviour of
     // Theme::find_icon_here with this function.
     pub fn find_icon_here(&mut self, icon_name: &str, size: u32, scale: u32) -> Option<IconFile> {

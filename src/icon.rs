@@ -20,7 +20,7 @@ use std::sync::Arc;
 pub struct Icons {
     /// Map of "standalone" icons (icons not belonging to any icon theme) to their path.
     pub standalone_icons: HashMap<String, IconFile>,
-    /// Map of internal theme names to their corresponding [Theme]
+    /// Map of internal theme names to their corresponding [`Theme`]
     pub themes: HashMap<OsString, Arc<Theme>>,
 }
 

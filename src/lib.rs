@@ -17,15 +17,15 @@
 //! println!("Firefox icon is at {:?}", firefox.unwrap().path())
 //! ```
 //!
-//! See [Icons].
+//! See [`Icons`].
 //!
 //! # Feature flags
 //!
 //! By default, **no features** are enabled.
 //!
-//! - `log`: Enable logging, which introduces a dependency on the `log` crate.
-//! - `full-search`: Enables "full icon search", to pre-fetch all available icons in a theme, accessed through [`IconLocations::full_icon_search`]. Introduces a dependency on the `walkdir` crate.
-//! - `cache`: Enables the caching versions of [`Icons`] and [`Theme`] ([`IconsCache`] and [`ThemeCache`]), which introduces a dependency on `qp-trie`.
+//! - **`log`**: Enable logging, which introduces a dependency on the `log` crate.
+//! - **`full-search`**: Enables "full icon search", to pre-fetch all available icons in a theme, accessed through [`IconLocations::full_icon_search`]. Introduces a dependency on the `walkdir` crate.
+//! - **`cache`**: Enables the caching versions of [`Icons`] and [`Theme`] ([`IconsCache`] and [`ThemeCache`]), which introduces a dependency on `qp-trie`.
 //!
 //! # Icon matching
 //!
@@ -62,7 +62,7 @@
 //!     While a number of directories should always be scanned for icons, the user or application is
 //!     allowed to search additional directories as it sees fit.
 //!
-//!     [IconSearch] handles this part, and is also the main entrypoint for `icon`.
+//!     [`IconSearch`] handles this part, and is also the main entrypoint for `icon`.
 //!
 //! 2.  *Parsing and resolving icon themes*:
 //!
