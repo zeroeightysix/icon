@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! Turns out finding icons correctly on linux is kind of hard.
 //!
@@ -87,6 +88,9 @@ mod icon;
 mod search;
 mod theme;
 
+#[cfg(feature = "cache")]
+#[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+pub use cache::*;
 pub use icon::*;
 pub use search::*;
 pub use theme::*;

@@ -5,19 +5,22 @@ use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::sync::Arc;
 
+/// Cached version of [`Icons`].
 pub struct IconsCache {
+    /// The [`Icons`] this cache was created from.
     pub icons: Icons,
     themes: HashMap<OsString, ThemeCache>,
 }
 
 impl IconsCache {
+    /// Creates a new [`IconsCache`] from [`Icons`].
     pub fn from_icons(icons: Icons) -> Self {
         icons.into()
     }
 
     /// Like [`find_icon`](self.find_icon), with `theme` being `"hicolor"`, which is the default icon theme.
     ///
-    /// Cached version of [Theme::find_default_icon].
+    /// Cached version of [`Icons::find_default_icon`]
     pub fn find_default_icon(
         &mut self,
         icon_name: &str,
@@ -86,6 +89,7 @@ impl From<Icons> for IconsCache {
     }
 }
 
+/// Cached version of [`Theme`].
 pub struct ThemeCache {
     theme: Arc<Theme>,
     // Cache of directory names to an Option indicating:
@@ -95,6 +99,7 @@ pub struct ThemeCache {
 }
 
 impl ThemeCache {
+    /// Create a new [`ThemeCache`] from a given [`Theme`].
     pub fn from_theme(theme: Arc<Theme>) -> Self {
         theme.into()
     }
@@ -148,6 +153,7 @@ impl ThemeCache {
         icon.map(|(_, ico)| ico.clone())
     }
 
+    /// Empties the internal cache.
     pub fn clear_cache(&mut self) {
         self.cache.clear();
     }

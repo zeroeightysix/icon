@@ -234,6 +234,13 @@ impl IconSearch<LocationsFound> {
     pub fn icons(self) -> Icons {
         self.finish().icons()
     }
+
+    #[cfg(feature = "cache")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+    /// Like [icons](IconSearch::icons), but immediately wrapped into the cached type.
+    pub fn icons_cached(self) -> crate::cache::IconsCache {
+        self.finish().icons_cached()
+    }
 }
 
 impl IconSearch<Finished> {
@@ -242,6 +249,15 @@ impl IconSearch<Finished> {
     /// Contained search directories are lost.
     pub fn icons(self) -> Icons {
         self.icons.expect("guaranteed by type-state")
+    }
+
+    /// Consume this `IconSearch` to expose its [`Icons`] and turn it into [`IconsCache`](crate::cache::IconsCache).
+    ///
+    /// Contained search directories are lost.
+    #[cfg(feature = "cache")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+    pub fn icons_cached(self) -> crate::cache::IconsCache {
+        self.icons.expect("guaranteed by type-state").into()
     }
 }
 
@@ -279,6 +295,7 @@ impl IconLocations {
 
     /// Search for all icons in all themes and store the result.
     #[cfg(feature = "full-search")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full-search")))]
     pub fn full_icon_search(&mut self) -> &HashMap<String, Vec<IconFile>> {
         // First, initialize the "full icon map" with the standalone icons and their paths:
         let mut full_icon_map: HashMap<_, _> = self
@@ -342,6 +359,15 @@ impl IconLocations {
             standalone_icons,
             themes,
         }
+    }
+
+    /// Like [icons](IconLocations::icons), but immediately wrapped into the cached type.
+    #[cfg(feature = "cache")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "cache")))]
+    pub fn icons_cached(self) -> crate::cache::IconsCache {
+        let icons = self.icons();
+
+        icons.into()
     }
 
     /// Resolve all themes found in the directories searched, returning a map of internal
