@@ -19,6 +19,14 @@
 //!
 //! See [Icons].
 //!
+//! # Feature flags
+//!
+//! By default, **no features** are enabled.
+//!
+//! - `log`: Enable logging, which introduces a dependency on the `log` crate.
+//! - `full-search`: Enables "full icon search", to pre-fetch all available icons in a theme, accessed through [`IconLocations::full_icon_search`]. Introduces a dependency on the `walkdir` crate.
+//! - `cache`: Enables the caching versions of [`Icons`] and [`Theme`] ([`IconsCache`] and [`ThemeCache`]), which introduces a dependency on `qp-trie`.
+//!
 //! # Icon matching
 //!
 //! Matching a desired size and scale for an icon to the actual file for that size and scale isn't
