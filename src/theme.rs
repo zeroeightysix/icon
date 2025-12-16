@@ -1,5 +1,5 @@
 use crate::ThemeParseError::MissingRequiredAttribute;
-use crate::icon::IconFile;
+use crate::icon::{FileType, IconFile};
 use freedesktop_entry_parser::low_level::{SectionBytes, SectionBytesIter};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -113,10 +113,14 @@ impl Theme {
             .filter(move |sub_dir| sub_dir.matches_size(size, scale))
     }
 
+    #[cfg(not(feature = "ico"))]
     fn possible_file_names_for(icon_name: &str) -> [String; 3] {
-        const EXTENSIONS: [&str; 3] = ["png", "xpm", "svg"];
+        FileType::types().map(|ext| format!("{icon_name}.{ext}"))
+    }
 
-        EXTENSIONS.map(|ext| format!("{icon_name}.{ext}"))
+    #[cfg(feature = "ico")]
+    fn possible_file_names_for(icon_name: &str) -> [String; 4] {
+        FileType::types().map(|ext| format!("{icon_name}.{ext}"))
     }
 
     pub(crate) fn find_icon_in_directory(
@@ -562,6 +566,17 @@ mod test {
             small_ico.path()
         );
         assert_eq!(small_ico.file_type(), FileType::Png);
+    }
+
+    #[test]
+    #[cfg(feature = "ico")]
+    fn test_find_ico_icon() {
+        let icons = test_search().search().icons();
+
+        let tux_ico = icons.find_icon("tux", 32, 1, "TestTheme").unwrap();
+
+        assert!(tux_ico.path().ends_with("TestTheme/32x32/foo/tux.ico"));
+        assert_eq!(tux_ico.file_type(), FileType::Ico);
     }
 
     #[test]

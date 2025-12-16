@@ -30,6 +30,7 @@ qp-trie = { version = "0.8.2", default-features = false, optional = true }
 [features]
 "log" = ["dep:log"]
 "cache" = ["dep:qp-trie"]
+"ico" = []
 
 [dev-dependencies]
 freedesktop-desktop-entry = "0.7.13"
